@@ -17,11 +17,14 @@ module Jekyll
       self.pygments        = config['pygments']
       self.permalink_style = config['permalink'].to_sym
 
+      self.reset
+      self.setup
+    end
+
+    def reset
       self.layouts         = {}
       self.posts           = []
       self.categories      = Hash.new { |hash, key| hash[key] = Array.new }
-
-      self.setup
     end
 
     def setup
@@ -85,6 +88,7 @@ module Jekyll
     #
     # Returns nothing
     def process
+      self.reset
       self.read_layouts
       self.transform_pages
       self.write_posts
@@ -126,12 +130,13 @@ module Jekyll
         end
       end
 
+      self.posts.sort!
+
       # second pass renders each post now that full site payload is available
       self.posts.each do |post|
         post.render(self.layouts, site_payload)
       end
 
-      self.posts.sort!
       self.categories.values.map { |cats| cats.sort! { |a, b| b <=> a} }
     rescue Errno::ENOENT => e
       # ignore missing layout dir
